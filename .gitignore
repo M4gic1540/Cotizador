@@ -1,0 +1,4 @@
+Cotizador/db.sqlite3
+Cotizador/CotizadorApp/migrations/0001_initial.py
+.venv
+__pycache__/
