@@ -1,10 +1,29 @@
 # cotizacion/views.py
+from django.http import FileResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters
+from rest_framework import viewsets, filters, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .models import Cotizacion
 from .serializers import CotizacionSerializer
-# from .utils import generar_pdf_y_enviar_email
+from .utils import generar_pdf
+from rest_framework.views import APIView
+from django.http import Http404
+
+
+class DescargarPDFView(APIView):
+    """
+    View que permite descargar el PDF de una cotización por su ID.
+    """
+    def get(self, request, pk):
+        try:
+            cotizacion = Cotizacion.objects.get(pk=pk)
+        except Cotizacion.DoesNotExist:
+            raise Http404("Cotización no encontrada")
+        
+        pdf_buffer = generar_pdf(cotizacion)
+        return FileResponse(pdf_buffer, as_attachment=True, filename='cotizacion.pdf')
 
 
 class CotizacionViewSet(viewsets.ModelViewSet):
@@ -53,21 +72,27 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         Al crear una cotización:
           1. Guarda la instancia.
           2. Asigna fecha actual si no existe.
-          3. Genera PDF y envía correo al cliente.
         """
         cotizacion = serializer.save()
         if not cotizacion.fecha:
             cotizacion.fecha = timezone.now()
             cotizacion.save()
-        # generar_pdf_y_enviar_email(cotizacion)
+
+    @action(detail=True, methods=['get'])
+    def descargar_pdf(self, request, pk=None):
+        """
+        Genera el PDF de la cotización y permite descargarlo.
+        """
+        cotizacion = self.get_object()
+        buffer = generar_pdf(cotizacion)
+        return FileResponse(buffer, as_attachment=True, filename=f'cotizacion_{cotizacion.id}.pdf')
 
     def perform_update(self, serializer):
         """
-        Actualiza la cotización y reenvía el PDF actualizado.
+        Actualiza la cotización.
         """
         cotizacion = serializer.save()
         cotizacion.save()
-        # generar_pdf_y_enviar_email(cotizacion)
 
     def perform_destroy(self, instance):
         """

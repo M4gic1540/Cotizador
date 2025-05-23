@@ -11,6 +11,7 @@ if not settings.configured:
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'Cotizador.settings')
     settings.configure()
 
+
 class CotizacionTests(APITestCase):
     def setUp(self):
         self.cotizacion_data = {
@@ -31,9 +32,8 @@ class CotizacionTests(APITestCase):
         response = self.client.post(url, self.cotizacion_data, format='json')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Cotizacion.objects.count(), 2)
-        self.assertEqual(Cotizacion.objects.last().nombre, self.cotizacion_data['nombre'])
-        print(response.data)
-        print(self.cotizacion_data['nombre'])
+        self.assertEqual(Cotizacion.objects.last().nombre,
+                         self.cotizacion_data['nombre'])
 
     def test_list_cotizaciones(self):
         """
@@ -43,9 +43,8 @@ class CotizacionTests(APITestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
-        self.assertEqual(response.data[0]['nombre'], self.cotizacion_data['nombre'])
-        print(response.data)
-        print(self.cotizacion_data['nombre'])
+        self.assertEqual(response.data[0]['nombre'],
+                         self.cotizacion_data['nombre'])
 
     def test_update_cotizacion(self):
         """
@@ -63,8 +62,6 @@ class CotizacionTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.cotizacion.refresh_from_db()
         self.assertEqual(self.cotizacion.nombre, updated_data['nombre'])
-        print(response.data)
-        print(self.cotizacion.nombre)
 
     def test_delete_cotizacion(self):
         """
@@ -74,28 +71,37 @@ class CotizacionTests(APITestCase):
         response = self.client.delete(url)
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertEqual(Cotizacion.objects.count(), 0)
-        print(response.data)
 
+    def test_descargar_pdf(self):
+        """
+        Verifica que se pueda descargar el PDF de la cotización.
+        """
+        url = reverse('cotizacion-descargar-pdf', kwargs={'pk': self.cotizacion.id})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response['Content-Type'], 'application/pdf')
+        self.assertEqual(response['Content-Disposition'],
+                         f'attachment; filename="cotizacion_{self.cotizacion.id}.pdf"')
 
     def test_filter_by_email(self):
         """
         Verifica que el filtrado por email funcione correctamente.
         """
-        response = self.client.get(reverse('cotizacion-list'), {'email': self.cotizacion.email})
+        response = self.client.get(
+            reverse('cotizacion-list'), {'email': self.cotizacion.email})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['email'], self.cotizacion.email)
-        print(response.data)
 
     def test_search_by_detalles(self):
         """
         Verifica que la búsqueda en el campo 'detalles' funcione correctamente.
         """
-        response = self.client.get(reverse('cotizacion-list'), {'search': 'Test'})
+        response = self.client.get(
+            reverse('cotizacion-list'), {'search': 'Test'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertGreaterEqual(len(response.data), 1)
         self.assertIn('Test', response.data[0]['detalles'])
-        print(response.data)
 
     def test_order_by_fecha(self):
         """
@@ -110,16 +116,18 @@ class CotizacionTests(APITestCase):
             precio=1.00,
             fecha=futura_fecha
         )
-        response = self.client.get(reverse('cotizacion-list'), {'ordering': '-fecha'})
+        response = self.client.get(
+            reverse('cotizacion-list'), {'ordering': '-fecha'})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        
+
         # Confirmar que la cotización con la fecha futura esté primero
         fechas = [item['fecha'] for item in response.data]
         nombres = [item['nombre'] for item in response.data]
-        
-        self.assertGreaterEqual(fechas[0], fechas[1])  # Verifica orden descendente
-        self.assertEqual(nombres[0], 'Futuro')         # Verifica que sea la cotización correcta
 
+        # Verifica orden descendente
+        self.assertGreaterEqual(fechas[0], fechas[1])
+        # Verifica que sea la cotización correcta
+        self.assertEqual(nombres[0], 'Futuro')
 
     def test_filter_by_date_range(self):
         """
@@ -136,7 +144,8 @@ class CotizacionTests(APITestCase):
             fecha=ayer
         )
         # Filtro desde hoy en adelante (debería excluir la de ayer)
-        response = self.client.get(reverse('cotizacion-list'), {'start_date': timezone.now().date().isoformat()})
+        response = self.client.get(
+            reverse('cotizacion-list'), {'start_date': timezone.now().date().isoformat()})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertTrue(all(item['fecha'] >= timezone.now().date().isoformat() for item in response.data))
-        print(response.data)
+        self.assertTrue(all(item['fecha'] >= timezone.now(
+        ).date().isoformat() for item in response.data))
