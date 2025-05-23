@@ -52,6 +52,22 @@ Este proyecto implementa un servicio para generar cotizaciones en PDF y enviarla
    pip install -r requirements.txt
    ```
 
+## ▶️ Uso
+
+1. # Aplica migraciones y crea superusuario
+
+   ```
+   python manage.py migrate
+
+   python manage.py createsuperuser
+
+   ```
+2. # Inicia el servidor Django
+
+   ```
+   python manage.py runserver
+   ```
+
 ## 📘 API REST
 
 - **Base URL: http://localhost:8000/api/cotizaciones/**
