@@ -36,10 +36,21 @@ Este proyecto implementa un servicio para generar cotizaciones en PDF y enviarla
 1. **Clona el repositorio**  
    ```bash
    git clone https://github.com/tu-usuario/cotizaciones-automatica.git
-
    cd cotizaciones-automatica
 
 
 2. **Configura el entorno Python**
 
-``` python -m venv .venv ```
+```python -m venv .venv 
+
+** Linux/macOS
+
+```source .venv/bin/activate
+
+** Windows
+
+```.venv\Scripts\activate
+
+** Instalar las librerias que se utilizaran en el proyecto
+
+```pip install -r requirements.txt ```
