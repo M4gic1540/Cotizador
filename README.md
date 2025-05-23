@@ -51,3 +51,14 @@ Este proyecto implementa un servicio para generar cotizaciones en PDF y enviarla
    # Instalar dependencias
    pip install -r requirements.txt
    ```
+
+## 📘 API REST
+
+- **Base URL: http://localhost:8000/api/cotizaciones/**
+
+#### Método	Ruta	Descripción
+- **GET	/	Lista cotizaciones (con filtros/search/ordering).**
+- **POST	/	Crea cotización → genera PDF + envía mail.**
+- **GET	/:id/	Recupera cotización por ID.**
+- **PUT	/:id/	Actualiza cotización → regenera PDF + reenvía mail.**
+- **DELETE	/:id/	Elimina cotización.**
