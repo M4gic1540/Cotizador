@@ -40,15 +40,24 @@ Este proyecto implementa un servicio para generar cotizaciones en PDF y enviarla
    ```
 
 2. **Configura el entorno Python**
-   ```bash
+   # Creacion de entorno Virtual
+
+   ```
    python -m venv .venv
+   ```
    # Activar el entorno virtual en Linux/Mac
+
+   ```
    source .venv/bin/activate
+   ```
 
    # Activar el entorno virtual en Windows
+   ```
    .venv\Scripts\activate
+   ```
 
    # Instalar dependencias
+   ```
    pip install -r requirements.txt
    ```
 
@@ -58,11 +67,14 @@ Este proyecto implementa un servicio para generar cotizaciones en PDF y enviarla
 
    ```
    python manage.py migrate
-
-   python manage.py createsuperuser
+   ```
+2. # Realiza la creacion de un Superusuario
 
    ```
-2. # Inicia el servidor Django
+   python manage.py createsuperuser
+   ```
+
+3. # Inicia el servidor Django
 
    ```
    python manage.py runserver
