@@ -34,8 +34,12 @@ Este proyecto implementa un servicio para generar cotizaciones en PDF y enviarla
 ## 🔧 Instalación
 
 1. **Clona el repositorio**
-   ```bash
+   ```
    git clone https://github.com/tu-usuario/cotizaciones-automatica.git
+   ```
+   # Cambia al directorio del repositorio
+
+   ```
    cd cotizaciones-automatica
    ```
 
@@ -90,3 +94,28 @@ Este proyecto implementa un servicio para generar cotizaciones en PDF y enviarla
 - **GET	/:id/	Recupera cotización por ID.**
 - **PUT	/:id/	Actualiza cotización → regenera PDF + reenvía mail.**
 - **DELETE	/:id/	Elimina cotización.**
+
+#### Filtros & Búsqueda & Ordenación
+
+- **Filtrar: ?email=juan@ejemplo.com&nombre=María**
+
+- **Rango fechas: ?start_date=2025-01-01&end_date=2025-12-31**
+
+- **Search: ?search=landing**
+
+- **Orden: ?ordering=precio o ?ordering=-fecha**
+
+
+## 🤝 Contribuciones
+
+## ¡Las contribuciones son bienvenidas!
+
+**Haz un fork del repositorio.** 
+
+**Crea tu rama (git checkout -b feature/nueva-funcionalidad).**
+
+**Commit de tus cambios (git commit -m 'Agrega nueva funcionalidad').**
+
+**Push a la rama (git push origin feature/nueva-funcionalidad).**
+
+**Abre un Pull Request.**
