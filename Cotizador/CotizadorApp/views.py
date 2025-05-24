@@ -8,22 +8,6 @@ from rest_framework.response import Response
 from .models import Cotizacion
 from .serializers import CotizacionSerializer
 from .utils import generar_pdf
-from rest_framework.views import APIView
-from django.http import Http404
-
-
-class DescargarPDFView(APIView):
-    """
-    View que permite descargar el PDF de una cotización por su ID.
-    """
-    def get(self, request, pk):
-        try:
-            cotizacion = Cotizacion.objects.get(pk=pk)
-        except Cotizacion.DoesNotExist:
-            raise Http404("Cotización no encontrada")
-        
-        pdf_buffer = generar_pdf(cotizacion)
-        return FileResponse(pdf_buffer, as_attachment=True, filename='cotizacion.pdf')
 
 
 class CotizacionViewSet(viewsets.ModelViewSet):
