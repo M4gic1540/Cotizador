@@ -1,83 +1,129 @@
 from io import BytesIO
-from reportlab.pdfgen import canvas
+from decimal import Decimal
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
-from reportlab.platypus import Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer
+from reportlab.platypus import (
+    Table, TableStyle, SimpleDocTemplate, Paragraph, Spacer
+)
 from reportlab.lib.styles import getSampleStyleSheet
-from decimal import Decimal
 
 
 def generar_pdf(cotizacion):
+    """
+    Genera un archivo PDF con una factura a partir del objeto `cotizacion`.
+
+    Args:
+        cotizacion: Objeto con los atributos necesarios como `id`, `fecha`,
+                    `nombre`, `email`, `detalles`, `cantidad`, `precio`.
+
+    Returns:
+        BytesIO: Contenido del PDF generado en un buffer en memoria.
+    """
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=A4)
     styles = getSampleStyleSheet()
     elements = []
 
-    # Encabezado
+    # Secciones del PDF
     elements.append(Paragraph("<b>Factura</b>", styles['Title']))
     elements.append(Spacer(1, 12))
 
-    # Fechas
-    fecha_factura = cotizacion.fecha.strftime("%d/%m/%Y")
-    numero_factura = f"{cotizacion.id}"
+    elements.append(_crear_tabla_cliente(cotizacion))
+    elements.append(Spacer(1, 20))
 
-    # Información del cliente y empresa (mejor diseño visual)
-    cliente = [
-        ["Nro de factura:", numero_factura],
-        ["Fecha de factura:", fecha_factura],
+    elements.append(_crear_tabla_productos(cotizacion))
+    elements.append(Spacer(1, 20))
+
+    elements.append(_crear_tabla_totales(cotizacion))
+    elements.append(Spacer(1, 20))
+
+    doc.build(elements)
+    buffer.seek(0)
+    return buffer
+
+
+def _crear_tabla_cliente(cotizacion):
+    """
+    Crea una tabla con los datos del cliente y factura.
+
+    Returns:
+        Table: Tabla con información de cliente y factura.
+    """
+    datos = [
+        ["Nro de factura:", str(cotizacion.id)],
+        ["Fecha de factura:", cotizacion.fecha.strftime("%d/%m/%Y")],
         ["Nombre:", cotizacion.nombre],
         ["Email:", cotizacion.email],
     ]
-    table_cliente = Table(cliente, colWidths=[150, 330])
-    table_cliente.setStyle(TableStyle([
-        ('BOX', (0,0), (-1,-1), 0, colors.black),
-        ('INNERGRID', (0,0), (-1,-1), 0.5, colors.black),
-        ('BACKGROUND', (0,0), (0,-1), colors.lightblue),
-        ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-        ('ALIGN', (0,0), (0,-1), 'CENTER'),
-        ('FONTNAME', (0,0), (-1,-1), 'Helvetica'),
-        ('BOTTOMPADDING', (0,0), (-1,-1), 6),
-        ('TOPPADDING', (0,0), (-1,-1), 6),
+    tabla = Table(datos, colWidths=[150, 330])
+    tabla.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 0, colors.black),
+        ('INNERGRID', (0, 0), (-1, -1), 0.5, colors.black),
+        ('BACKGROUND', (0, 0), (0, -1), colors.lightblue),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (0, 0), (0, -1), 'CENTER'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
     ]))
-    elements.append(table_cliente)
-    elements.append(Spacer(1, 20))
+    return tabla
 
 
+def _crear_tabla_productos(cotizacion):
+    """
+    Crea una tabla con los productos y precios.
 
-    # Tabla de productos
-    headers = ["Descripción", "Unidades", "Precio Unitario", "Precio"]
-    data = [
-        [cotizacion.detalles, cotizacion.cantidad,
-            f"{cotizacion.precio:.2f} $", f"{cotizacion.cantidad * cotizacion.precio:.2f} $"]
+    Returns:
+        Table: Tabla con la descripción del producto.
+    """
+    headers = ["Descripción", "Unidades", "Precio Unitario", "Precio Total"]
+    precio_unitario = cotizacion.precio
+    cantidad = cotizacion.cantidad
+    precio_total = cantidad * precio_unitario
+
+    filas = [
+        headers,
+        [
+            cotizacion.detalles,
+            cantidad,
+            f"$ {precio_unitario}",
+            f"$ {precio_total}"
+        ]
     ]
-    data.insert(0, headers)
 
-    tabla_productos = Table(data, colWidths=[200, 80, 100, 100])
-    tabla_productos.setStyle(TableStyle([
+    tabla = Table(filas, colWidths=[200, 80, 100, 100])
+    tabla.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.lightblue),
         ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
         ('ALIGN', (1, 1), (-1, -1), 'CENTER'),
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
         ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold')
     ]))
-    elements.append(tabla_productos)
-    elements.append(Spacer(1, 20))
+    return tabla
 
-        # Cálculos de totales
-    subtotal = cotizacion.cantidad * cotizacion.precio
+
+def _crear_tabla_totales(cotizacion):
+    """
+    Calcula los totales e IVA, y retorna una tabla con esta información.
+
+    Returns:
+        Table: Tabla de totales (subtotal, IVA, total).
+    """
+    cantidad = cotizacion.cantidad
+    precio = cotizacion.precio
+    subtotal = cantidad * precio
     iva = subtotal * Decimal("0.19")
     total = subtotal + iva
 
-    # Tabla de totales
-    totales = [
+    datos_totales = [
         ["Subtotal:", f"$ {subtotal:.2f}"],
         ["IVA (19%):", f"$ {iva:.2f}"],
         ["Total:", f"$ {total:.2f}"]
     ]
-    tabla_totales = Table(totales, colWidths=[250, 100])
-    tabla_totales.setStyle(TableStyle([
+
+    tabla = Table(datos_totales, colWidths=[250, 100])
+    tabla.setStyle(TableStyle([
         ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
-        ('ALIGN', (0, 0), (-1, -1), 'RIGHT'),
         ('TEXTCOLOR', (0, 0), (0, -2), colors.black),
         ('TEXTCOLOR', (0, -1), (-1, 0), colors.black),
         ('FONTNAME', (0, 0), (-1, -1), 'Helvetica'),
@@ -85,10 +131,4 @@ def generar_pdf(cotizacion):
         ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
         ('TOPPADDING', (0, 0), (-1, -1), 6),
     ]))
-    elements.append(tabla_totales)
-    elements.append(Spacer(1, 20))
-
-    # Generar PDF
-    doc.build(elements)
-    buffer.seek(0)
-    return buffer
+    return tabla
