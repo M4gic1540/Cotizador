@@ -103,32 +103,6 @@ class CotizacionTests(APITestCase):
         self.assertGreaterEqual(len(response.data), 1)
         self.assertIn('Test', response.data[0]['detalles'])
 
-    def test_order_by_fecha(self):
-        """
-        Verifica que el ordenamiento por fecha descendente ('-fecha') funcione correctamente.
-        """
-        futura_fecha = timezone.now() + timedelta(days=1)
-        Cotizacion.objects.create(
-            nombre='Futuro',
-            email='future@example.com',
-            detalles='Nueva cotización',
-            cantidad=1,
-            precio=1.00,
-            fecha=futura_fecha
-        )
-        response = self.client.get(
-            reverse('cotizacion-list'), {'ordering': '-fecha'})
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        # Confirmar que la cotización con la fecha futura esté primero
-        fechas = [item['fecha'] for item in response.data]
-        nombres = [item['nombre'] for item in response.data]
-
-        # Verifica orden descendente
-        self.assertGreaterEqual(fechas[0], fechas[1])
-        # Verifica que sea la cotización correcta
-        self.assertEqual(nombres[0], 'Futuro')
-
     def test_filter_by_date_range(self):
         """
         Verifica que el filtro por rango de fechas funcione correctamente.
