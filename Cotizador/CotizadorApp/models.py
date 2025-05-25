@@ -18,3 +18,32 @@ class Cotizacion(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     detalles = models.TextField()
     fecha = models.DateTimeField(auto_now_add=True)
+
+
+class Categoria(models.Model):
+    """
+    Modelo para gestionar categorías dinámicas.
+
+    Puedes agregar, editar o eliminar categorías desde el panel de administración.
+    """
+    nombre = models.CharField(max_length=50, unique=True)
+
+    def __str__(self):
+        return self.nombre
+
+
+class Producto(models.Model):
+    """
+    Modelo de productos con relación a la categoría.
+
+    La categoría se selecciona desde un listado de categorías existentes en la base de datos.
+    """
+    categoria = models.ForeignKey(Categoria, on_delete=models.SET_NULL, null=True, related_name='productos')
+    nombre = models.CharField(max_length=100)
+    descripcion = models.TextField(blank=True)
+    precio = models.DecimalField(max_digits=10, decimal_places=2)
+    stock = models.PositiveIntegerField()
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.nombre} - {self.categoria}"
