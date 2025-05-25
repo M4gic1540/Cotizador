@@ -5,8 +5,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Cotizacion, CustomUser
-from .serializers import CotizacionSerializer, CustomUserSerializer
+from .models import Cotizacion, CustomUser, Categoria, Producto
+from .serializers import CotizacionSerializer, CustomUserSerializer, CategoriaSerializer, ProductoSerializer
 from .utils import generar_pdf
 
 
@@ -106,3 +106,19 @@ class UserViewSet(viewsets.ModelViewSet):
     search_fields = ['first_name', 'last_name', 'email', 'rut']
     ordering_fields = ['id', 'first_name', 'last_name']
     ordering = ['id']
+
+
+class CategoriaViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para listar, crear y administrar categorías.
+    """
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+
+
+class ProductoViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestionar productos.
+    """
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
