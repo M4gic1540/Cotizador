@@ -122,3 +122,7 @@ class ProductoViewSet(viewsets.ModelViewSet):
     """
     queryset = Producto.objects.all()
     serializer_class = ProductoSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['categoria', 'nombre', 'precio']
+    search_fields = ['nombre', 'descripcion']
+    ordering_fields = ['id', 'nombre', 'precio']

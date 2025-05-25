@@ -36,11 +36,14 @@ def generar_pdf(cotizacion):
 
     elements.append(_crear_tabla_totales(cotizacion))
     elements.append(Spacer(1, 20))
+    elements.insert(0, Paragraph("Tu Empresa S.A. - RUT 76.123.456-K", styles['Heading2']))
 
     doc.build(elements)
     buffer.seek(0)
     return buffer
 
+def formato_pesos(valor):
+    return "$ {:,.2f}".format(valor).replace(",", "X").replace(".", ",").replace("X", ".")
 
 def _crear_tabla_cliente(cotizacion):
     datos = [
@@ -67,25 +70,21 @@ def _crear_tabla_cliente(cotizacion):
 
 def _crear_tabla_productos(cotizacion):
     """
-    Crea una tabla con los productos y precios.
+    Crea una tabla con los productos asociados a la cotización.
 
     Returns:
-        Table: Tabla con la descripción del producto.
+        Table: Tabla con productos, cantidades y precios.
     """
     headers = ["Descripción", "Unidades", "Precio Unitario", "Precio Total"]
-    precio_unitario = cotizacion.precio
-    cantidad = cotizacion.cantidad
-    precio_total = cantidad * precio_unitario
+    filas = [headers]
 
-    filas = [
-        headers,
-        [
-            cotizacion.detalles,
-            cantidad,
-            f"$ {precio_unitario}",
-            f"$ {precio_total}"
-        ]
-    ]
+    for detalle in cotizacion.detalles.all():
+        filas.append([
+            detalle.producto.nombre if detalle.producto else "Producto eliminado",
+            detalle.cantidad,
+            f"{formato_pesos(detalle.precio_unitario)}",
+            f"{formato_pesos(detalle.precio_total)}"
+        ])
 
     tabla = Table(filas, colWidths=[200, 80, 100, 100])
     tabla.setStyle(TableStyle([
@@ -98,23 +97,22 @@ def _crear_tabla_productos(cotizacion):
     return tabla
 
 
+
 def _crear_tabla_totales(cotizacion):
     """
-    Calcula los totales e IVA, y retorna una tabla con esta información.
+    Calcula los totales e IVA de todos los productos en la cotización.
 
     Returns:
-        Table: Tabla de totales (subtotal, IVA, total).
+        Table: Tabla de totales.
     """
-    cantidad = cotizacion.cantidad
-    precio = cotizacion.precio
-    subtotal = cantidad * precio
+    subtotal = sum([detalle.precio_total for detalle in cotizacion.detalles.all()])
     iva = subtotal * Decimal("0.19")
     total = subtotal + iva
 
     datos_totales = [
-        ["Subtotal:", f"$ {subtotal:.2f}"],
-        ["IVA (19%):", f"$ {iva:.2f}"],
-        ["Total:", f"$ {total:.2f}"]
+        ["Subtotal:", f"{formato_pesos(subtotal)}"],
+        ["IVA (19%):", f"{formato_pesos(iva)}"],
+        ["Total:", f"{formato_pesos(total)}"]
     ]
 
     tabla = Table(datos_totales, colWidths=[250, 100])
