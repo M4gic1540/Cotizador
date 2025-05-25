@@ -103,6 +103,6 @@ class UserViewSet(viewsets.ModelViewSet):
         filters.OrderingFilter,
     ]
     filterset_fields = ['id', 'first_name', 'last_name', 'rut', 'email']
-    search_fields = ['first_name', 'last_name', 'email']
+    search_fields = ['first_name', 'last_name', 'email', 'rut']
     ordering_fields = ['id', 'first_name', 'last_name']
     ordering = ['id']
