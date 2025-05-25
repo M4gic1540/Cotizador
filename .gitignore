@@ -1,4 +1,5 @@
 Cotizador/db.sqlite3
 Cotizador/CotizadorApp/migrations/0001_initial.py
+Cotizador/CotizadorApp/migrations/0002_categoria_producto.py
 .venv
 __pycache__/
