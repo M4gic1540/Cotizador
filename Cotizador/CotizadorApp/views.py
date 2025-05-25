@@ -5,8 +5,8 @@ from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from .models import Cotizacion
-from .serializers import CotizacionSerializer
+from .models import Cotizacion, CustomUser
+from .serializers import CotizacionSerializer, CustomUserSerializer
 from .utils import generar_pdf
 
 
@@ -30,7 +30,6 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         filters.SearchFilter,
         filters.OrderingFilter,
     )
-    filterset_fields = ('email', 'nombre',)
     search_fields = ('detalles',)
     ordering_fields = ('id', 'fecha', 'precio')
     ordering = ('-fecha',)
@@ -84,3 +83,26 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         """
         instance.delete()
         # Aquí podrías enviar notificación o registro de auditoría si lo requieres.
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestión de usuarios personalizados.
+
+    Funcionalidades:
+    - Filtrado por ID, nombre, apellido, RUT y correo electrónico.
+    - Búsqueda por nombre y correo.
+    - Ordenamiento opcional.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = ['id', 'first_name', 'last_name', 'rut', 'email']
+    search_fields = ['first_name', 'last_name', 'email']
+    ordering_fields = ['id', 'first_name', 'last_name']
+    ordering = ['id']
