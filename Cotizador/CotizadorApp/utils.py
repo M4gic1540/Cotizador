@@ -25,7 +25,7 @@ def generar_pdf(cotizacion):
     elements = []
 
     # Secciones del PDF
-    elements.append(Paragraph("<b>Factura</b>", styles['Title']))
+    elements.append(Paragraph("<b>Cotización</b>", styles['Title']))
     elements.append(Spacer(1, 12))
 
     elements.append(_crear_tabla_cliente(cotizacion))
@@ -36,7 +36,9 @@ def generar_pdf(cotizacion):
 
     elements.append(_crear_tabla_totales(cotizacion))
     elements.append(Spacer(1, 20))
-    elements.insert(0, Paragraph("Tu Empresa S.A. - RUT 76.123.456-K", styles['Heading2']))
+
+    elements.append(Paragraph("Gracias por su compra!", styles['title']))
+    elements.append(Spacer(1, 20))
 
     doc.build(elements)
     buffer.seek(0)
