@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from .models import Cotizacion, CustomUser, Categoria, Producto
 from .serializers import CotizacionSerializer, CustomUserSerializer, CategoriaSerializer, ProductoSerializer
 from .utils import generar_pdf
+import pandas as pd
+from django.http import HttpResponse
 
 
 class CotizacionViewSet(viewsets.ModelViewSet):
@@ -83,6 +85,39 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         """
         instance.delete()
         # Aquí podrías enviar notificación o registro de auditoría si lo requieres.
+
+    @action(detail=False, methods=["get"])
+    def exportar_excel(self, request):
+        """
+        Exporta las cotizaciones filtradas como un archivo Excel.
+        Soporta filtros por fecha como en `get_queryset`.
+        """
+        queryset = self.get_queryset()  # aplica filtros si están en la URL
+        data = []
+
+        for c in queryset:
+            for detalle in c.detalles.all():
+                data.append({
+                    "ID Cotización": c.id,
+                    "Fecha": c.fecha.strftime("%d-%m-%Y"),
+                    "Cliente": f"{c.user.first_name} {c.user.last_name}",
+                    "Email": c.user.email,
+                    "Producto": detalle.producto.nombre if detalle.producto else "Eliminado",
+                    "Cantidad": detalle.cantidad,
+                    "Precio Unitario": float(detalle.precio_unitario),
+                    "Precio Total": float(detalle.precio_total),
+                })
+
+        df = pd.DataFrame(data)
+        buffer = pd.ExcelWriter("cotizaciones.xlsx", engine='openpyxl')
+        df.to_excel(buffer, index=False, sheet_name="Cotizaciones")
+        buffer.close()
+
+        # Devolver como archivo descargable
+        with open("cotizaciones.xlsx", "rb") as f:
+            response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename="cotizaciones.xlsx"'
+            return response
 
 
 class UserViewSet(viewsets.ModelViewSet):
