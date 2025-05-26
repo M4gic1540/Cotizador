@@ -1,10 +1,8 @@
-# cotizacion/views.py
 from django.http import FileResponse
 from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import viewsets, filters, status
+from rest_framework import viewsets, filters
 from rest_framework.decorators import action
-from rest_framework.response import Response
 from .models import Cotizacion, CustomUser, Categoria, Producto
 from .serializers import CotizacionSerializer, CustomUserSerializer, CategoriaSerializer, ProductoSerializer
 from .utils import generar_pdf
