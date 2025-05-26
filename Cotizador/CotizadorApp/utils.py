@@ -43,17 +43,13 @@ def generar_pdf(cotizacion):
 
 
 def _crear_tabla_cliente(cotizacion):
-    """
-    Crea una tabla con los datos del cliente y factura.
-
-    Returns:
-        Table: Tabla con información de cliente y factura.
-    """
     datos = [
         ["Nro de factura:", str(cotizacion.id)],
         ["Fecha de factura:", cotizacion.fecha.strftime("%d/%m/%Y")],
-        ["Nombre:", cotizacion.nombre],
-        ["Email:", cotizacion.email],
+        ["Nombre:", cotizacion.user.first_name + " " + cotizacion.user.last_name],
+        ["Email:", cotizacion.user.email],
+        ["Teléfono:", cotizacion.user.telefono],
+        ["RUT:", cotizacion.user.rut]
     ]
     tabla = Table(datos, colWidths=[150, 330])
     tabla.setStyle(TableStyle([

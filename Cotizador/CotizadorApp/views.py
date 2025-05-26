@@ -4,6 +4,9 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
+from rest_framework.response import Response
+from .models import Cotizacion, CustomUser, Categoria, Producto
+from .serializers import CotizacionSerializer, CustomUserSerializer, CategoriaSerializer, ProductoSerializer
 from .models import Cotizacion
 from .serializers import CotizacionSerializer
 from .utils import generar_pdf
@@ -29,7 +32,6 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         filters.SearchFilter,
         filters.OrderingFilter,
     )
-    filterset_fields = ('email', 'nombre',)
     search_fields = ('detalles',)
     ordering_fields = ('id', 'fecha', 'precio')
     ordering = ('-fecha',)
@@ -83,3 +85,42 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         """
         instance.delete()
         # Aquí podrías enviar notificación o registro de auditoría si lo requieres.
+
+
+class UserViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestión de usuarios personalizados.
+
+    Funcionalidades:
+    - Filtrado por ID, nombre, apellido, RUT y correo electrónico.
+    - Búsqueda por nombre y correo.
+    - Ordenamiento opcional.
+    """
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+
+    filter_backends = [
+        DjangoFilterBackend,
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+    filterset_fields = ['id', 'first_name', 'last_name', 'rut', 'email']
+    search_fields = ['first_name', 'last_name', 'email', 'rut']
+    ordering_fields = ['id', 'first_name', 'last_name']
+    ordering = ['id']
+
+
+class CategoriaViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para listar, crear y administrar categorías.
+    """
+    queryset = Categoria.objects.all()
+    serializer_class = CategoriaSerializer
+
+
+class ProductoViewSet(viewsets.ModelViewSet):
+    """
+    ViewSet para gestionar productos.
+    """
+    queryset = Producto.objects.all()
+    serializer_class = ProductoSerializer
