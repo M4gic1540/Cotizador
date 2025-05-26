@@ -87,7 +87,7 @@ class CotizacionViewSet(viewsets.ModelViewSet):
         # Aquí podrías enviar notificación o registro de auditoría si lo requieres.
 
     @action(detail=False, methods=["get"])
-    def exportar_excel(self, request):
+    def exportar_a_excel_cotizaciones(self, request):
         """
         Exporta las cotizaciones filtradas como un archivo Excel.
         Soporta filtros por fecha como en `get_queryset`.
@@ -142,6 +142,33 @@ class UserViewSet(viewsets.ModelViewSet):
     ordering_fields = ['id', 'first_name', 'last_name']
     ordering = ['id']
 
+    @action(detail=False, methods=['get'])
+    def exportar_a_excel_usuarios(self, request):
+        """
+        Exporta los usuarios como un archivo Excel.
+        """
+        queryset = self.get_queryset()
+        data = []
+
+        for user in queryset:
+            data.append({
+                "ID": user.id,
+                "Nombre": user.first_name,
+                "Apellido": user.last_name,
+                "RUT": user.rut,
+                "Email": user.email,
+            })
+
+        df = pd.DataFrame(data)
+        buffer = pd.ExcelWriter("usuarios.xlsx", engine='openpyxl')
+        df.to_excel(buffer, index=False, sheet_name="Usuarios")
+        buffer.close()
+
+        # Devolver como archivo descargable
+        with open("usuarios.xlsx", "rb") as f:
+            response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename="usuarios.xlsx"'
+            return response
 
 class CategoriaViewSet(viewsets.ModelViewSet):
     """
@@ -161,3 +188,32 @@ class ProductoViewSet(viewsets.ModelViewSet):
     filterset_fields = ['categoria', 'nombre', 'precio']
     search_fields = ['nombre', 'descripcion']
     ordering_fields = ['id', 'nombre', 'precio']
+
+    @action(detail=False, methods=['get'])
+    def exportar_a_excel_productos(self, request):
+        """
+        Exporta los productos como un archivo Excel.
+        """
+        queryset = self.get_queryset()
+        data = []
+
+        for producto in queryset:
+            data.append({
+                "ID": producto.id,
+                "Nombre": producto.nombre,
+                "Descripción": producto.descripcion,
+                "Precio": float(producto.precio),
+                "Categoría": producto.categoria.nombre if producto.categoria else "Sin categoría",
+                "Stock": producto.stock,
+            })
+
+        df = pd.DataFrame(data)
+        buffer = pd.ExcelWriter("productos.xlsx", engine='openpyxl')
+        df.to_excel(buffer, index=False, sheet_name="Productos")
+        buffer.close()
+
+        # Devolver como archivo descargable
+        with open("productos.xlsx", "rb") as f:
+            response = HttpResponse(f.read(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+            response['Content-Disposition'] = 'attachment; filename="productos.xlsx"'
+            return response
