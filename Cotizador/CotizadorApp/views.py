@@ -3,6 +3,7 @@ from django.utils import timezone
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import viewsets, filters
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from .models import Cotizacion, CustomUser, Categoria, Producto
 from .serializers import CotizacionSerializer, CustomUserSerializer, CategoriaSerializer, ProductoSerializer
 from .utils import generar_pdf
@@ -16,6 +17,7 @@ class CotizacionViewSet(viewsets.ModelViewSet):
     - Filtros por usuario, fecha, búsqueda y orden
     - Exportación a PDF y Excel
     """
+    permission_classes = [IsAuthenticated]
     serializer_class = CotizacionSerializer
     filter_backends = [DjangoFilterBackend,
                        filters.SearchFilter, filters.OrderingFilter]
